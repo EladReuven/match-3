@@ -82,7 +82,7 @@ public class GameManager : MonoBehaviour
         {
             if (n.value != -1)
             {
-                n.value = Random.Range(1, 6);
+                n.value = Random.Range(1, sprites.Length);
             }
         }
     }
@@ -102,13 +102,14 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                currentTile.GetComponent<Image>().sprite = sprites[n.value - 1];
+                currentTile.GetComponent<Image>().sprite = sprites[n.value];
             }
         }
     }
 
     private void VerifyBoardClass()
     {
+        NodesToDelete.Clear();
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -150,7 +151,6 @@ public class GameManager : MonoBehaviour
 
     private void VerifyX(int y, int x, Node node)
     {
-        NodesToDelete.Clear();
         if (node.value == board[x + 1, y].value && node.value == board[x + 2, y].value)
         {
             NodesToDelete.Add(node);
