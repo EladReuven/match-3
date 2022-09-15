@@ -12,11 +12,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject tilePrefab;
     [SerializeField] GameObject tileParent;
 
+    List<Node> NodesToDelete = new List<Node>();
+
+    #region UnityFunction
     // Start is called before the first frame update
     void Start()
     {
         StartGame();
     }
+
+    #endregion
 
     void StartGame()
     {
@@ -33,7 +38,17 @@ public class GameManager : MonoBehaviour
         //array of meta data of pieces
 
         //Verify board
-
+        do
+        {
+            foreach (Node node in NodesToDelete)
+            {
+                node.value = Random.Range(0, sprites.Length);
+            }
+            Debug.Log("amount of nodes to del b4 verify: " + NodesToDelete.Count);
+            VerifyBoardClass();
+            Debug.Log("amount of nodes to del after verify: " + NodesToDelete.Count);
+        }
+        while (NodesToDelete.Count > 0);
         //instantiate sprites
         InstTiles();
     }
@@ -91,7 +106,70 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    private void VerifyBoardClass()
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Node node = board[x, y];
+
+                if (NodesToDelete.Contains(node))
+                    continue;
+
+                if (node.value == -1 || x + 2 >= width || y + 2 >= height)
+                    continue;
+
+                VerifyX(y, x, node);
+                VerifyY(y, x, node);
+            }
+        }
+
+    }
+
+    private void VerifyY(int y, int x, Node node)
+    {
+        if (y + 2 < height && node.value == board[x, y + 1].value && node.value == board[x, y + 2].value)
+        {
+            NodesToDelete.Add(node);
+            NodesToDelete.Add(board[x, y + 1]);
+            NodesToDelete.Add(board[x, y + 2]);
+            //if it's a column of 4
+            if (y + 3 < height && node.value == board[x, y + 3].value)
+            {
+                NodesToDelete.Add(board[x, y + 3]);
+                //if it's a row of 5
+                if (y + 4 < height && node.value == board[x, y + 4].value)
+                {
+                    NodesToDelete.Add(board[x, y + 4]);
+                }
+            }
+        }
+    }
+
+    private void VerifyX(int y, int x, Node node)
+    {
+        NodesToDelete.Clear();
+        if (node.value == board[x + 1, y].value && node.value == board[x + 2, y].value)
+        {
+            NodesToDelete.Add(node);
+            NodesToDelete.Add(board[x + 1, y]);
+            NodesToDelete.Add(board[x + 2, y]);
+            //if it's a row of 4
+            if (x + 3 < width && node.value == board[x + 3, y].value)
+            {
+                NodesToDelete.Add(board[x + 3, y]);
+                //if it's a row of 5
+                if (x + 4 < width && node.value == board[x + 4, y].value)
+                {
+                    NodesToDelete.Add(board[x + 4, y]);
+                }
+            }
+        }
+    }
 }
+
 
 [System.Serializable]
 public class Node
@@ -104,8 +182,6 @@ public class Node
         value = v;
         index = i;
     }
-
-
 
 }
 
