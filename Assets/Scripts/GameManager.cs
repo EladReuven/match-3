@@ -5,16 +5,32 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager instance;
+
     int width = 9;
     int height = 14;
     Node[,] board;
     [SerializeField] Sprite[] sprites;
+    //[SerializeField] Sprite hole;
     [SerializeField] GameObject tilePrefab;
     [SerializeField] GameObject tileParent;
 
+    List<GameObject> tilesToSwap = new List<GameObject>();
     List<Node> NodesToDelete = new List<Node>();
 
     #region UnityFunction
+    private void Awake()
+    {
+        if(instance != null && instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            instance = this;
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,17 +39,17 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    #region CustomMethods
     void StartGame()
     {
         //set board and indexes
         InitBoard();
 
         //set holes
-        SetHoles();
+        SetHolesLVL1();
 
         //randomize sprites
         AssignNodeValues();
-
 
         //array of meta data of pieces
 
@@ -44,9 +60,7 @@ public class GameManager : MonoBehaviour
             {
                 node.value = Random.Range(0, sprites.Length);
             }
-            Debug.Log("amount of nodes to del b4 verify: " + NodesToDelete.Count);
-            VerifyBoardClass();
-            Debug.Log("amount of nodes to del after verify: " + NodesToDelete.Count);
+            VerifyBoard();
         }
         while (NodesToDelete.Count > 0);
         //instantiate sprites
@@ -65,7 +79,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void SetHoles()
+    private void SetHolesLVL1()
     {
         for (int x = 3; x < 6; x++)
         {
@@ -87,6 +101,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void VerifyBoard()
+    {
+        NodesToDelete.Clear();
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                Node node = board[x, y];
+
+                if (NodesToDelete.Contains(node))
+                    continue;
+
+                if (node.value == -1)
+                    continue;
+
+                VerifyX(y, x, node);
+                VerifyY(y, x, node);
+            }
+        }
+
+    }
+
     private void InstTiles()
     {
         GameObject currentTile;
@@ -99,34 +135,15 @@ public class GameManager : MonoBehaviour
                 Color tmpC = Camera.main.backgroundColor;
                 tmpC.a = 1;
                 currentTile.GetComponent<Image>().color = tmpC;
+                //currentTile.GetComponent<Image>().sprite = hole;
+
             }
             else
             {
                 currentTile.GetComponent<Image>().sprite = sprites[n.value];
             }
+            currentTile.GetComponent<Tile>().node = n;
         }
-    }
-
-    private void VerifyBoardClass()
-    {
-        NodesToDelete.Clear();
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                Node node = board[x, y];
-
-                if (NodesToDelete.Contains(node))
-                    continue;
-
-                if (node.value == -1 || x + 2 >= width || y + 2 >= height)
-                    continue;
-
-                VerifyX(y, x, node);
-                VerifyY(y, x, node);
-            }
-        }
-
     }
 
     private void VerifyY(int y, int x, Node node)
@@ -151,7 +168,7 @@ public class GameManager : MonoBehaviour
 
     private void VerifyX(int y, int x, Node node)
     {
-        if (node.value == board[x + 1, y].value && node.value == board[x + 2, y].value)
+        if (x + 2 < width && node.value == board[x + 1, y].value && node.value == board[x + 2, y].value)
         {
             NodesToDelete.Add(node);
             NodesToDelete.Add(board[x + 1, y]);
@@ -168,8 +185,83 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-}
 
+    private bool VerifyChoice(GameObject tile)
+    {
+
+        //current node is next to previous node
+        //current node == previous node + up or right or down or left
+        Node currentNode = tile.GetComponent<Tile>().node;
+
+        return isNearbyTile(currentNode);
+    }
+
+    private bool isNearbyTile(Node currentNode)
+    {
+        Node prevNode = tilesToSwap[0].GetComponent<Tile>().node;
+        return (currentNode.index.x == Point.add(prevNode.index, Point.up).x && currentNode.index.y == Point.add(prevNode.index, Point.up).y) ||
+            (currentNode.index.x == Point.add(prevNode.index, Point.right).x && currentNode.index.y == Point.add(prevNode.index, Point.right).y) ||
+            (currentNode.index.x == Point.add(prevNode.index, Point.down).x && currentNode.index.y == Point.add(prevNode.index, Point.down).y) ||
+            (currentNode.index.x == Point.add(prevNode.index, Point.left).x && currentNode.index.y == Point.add(prevNode.index, Point.left).y);
+    }
+
+    public void ChooseTile(GameObject tile)
+    {
+        Node currentNode = tile.GetComponent<Tile>().node;
+        if (currentNode.value == -1)
+            return;
+
+        Debug.Log("Count before: " + tilesToSwap.Count);
+        if (tilesToSwap.Contains(tile))
+        {
+            tilesToSwap.Remove(tile);
+            Debug.Log("Count after remove: " + tilesToSwap.Count);
+        }
+        else if (tilesToSwap.Count > 0)
+        {
+            if(VerifyChoice(tile))
+            {
+                tilesToSwap.Add(tile);
+                SwapTiles();
+            }
+            else
+            {
+                Debug.Log("Tile Not next to previous choice");
+            }
+        }
+        else
+        {
+            Debug.Log($"added tile: x{tile.GetComponent<Tile>().node.index.x} y{tile.GetComponent<Tile>().node.index.y}");
+            tilesToSwap.Add(tile);
+        }
+    }
+
+    public void SwapTiles()
+    {
+        Debug.Log("Swapping Tiles");
+        Node node1 = tilesToSwap[0].GetComponent<Tile>().node;
+        Node node2 = tilesToSwap[1].GetComponent<Tile>().node;
+
+        Point tmpPoint;
+        tmpPoint = node1.index;
+        node1.index = node2.index;
+        node2.index = tmpPoint;
+        tilesToSwap[0].GetComponent<RectTransform>().anchoredPosition = new Vector2(node1.index.x * 64, node1.index.y * -64);
+        tilesToSwap[1].GetComponent<RectTransform>().anchoredPosition = new Vector2(node2.index.x * 64, node2.index.y * -64);
+        tilesToSwap.Clear();
+
+    }
+
+    [ContextMenu("Print TilesToSwap")]
+    public void PrintTilesToSwap()
+    {
+        Debug.Log($"tile 0: x{tilesToSwap[0].GetComponent<Tile>().node.index.x} y{tilesToSwap[0].GetComponent<Tile>().node.index.y}");
+        Debug.Log($"tile 1: x{tilesToSwap[1].GetComponent<Tile>().node.index.x} y{tilesToSwap[1].GetComponent<Tile>().node.index.y}");
+    }
+
+    #endregion
+
+}
 
 [System.Serializable]
 public class Node
@@ -182,7 +274,6 @@ public class Node
         value = v;
         index = i;
     }
-
 }
 
 [System.Serializable]
@@ -237,6 +328,11 @@ public class Point
     public static Point add(Point p, Point o)
     {
         return new Point(p.x + o.x, p.y + o.y);
+    }
+
+    public static Point subtract(Point p, Point o)
+    {
+        return new Point(p.x - o.x, p.y - o.y);
     }
 
     public static Point clone(Point p)
