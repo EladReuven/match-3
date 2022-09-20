@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
 
     int width = 9;
     int height = 14;
+    public bool updating;  
     Node[,] board;
     [SerializeField] Sprite[] sprites;
     //[SerializeField] Sprite hole;
@@ -42,6 +43,7 @@ public class GameManager : MonoBehaviour
     #region CustomMethods
     void StartGame()
     {
+        updating = true;
         //set board and indexes
         InitBoard();
 
@@ -65,6 +67,7 @@ public class GameManager : MonoBehaviour
         while (NodesToDelete.Count > 0);
         //instantiate sprites
         InstTiles();
+        ToggleUpdating();
     }
 
     private void InitBoard()
@@ -266,6 +269,10 @@ public class GameManager : MonoBehaviour
         Debug.Log($"tile 1: x{tilesToSwap[1].GetComponent<Tile>().node.index.x} y{tilesToSwap[1].GetComponent<Tile>().node.index.y}");
     }
 
+    public void ToggleUpdating()
+    {
+        updating = !updating;
+    }
     #endregion
 
 }

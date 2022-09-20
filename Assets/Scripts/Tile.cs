@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Tile : MonoBehaviour
+public class Tile : MonoBehaviour , IPointerDownHandler, IPointerUpHandler
 {
     public Node node;
     bool pressed = false;
@@ -22,6 +22,23 @@ public class Tile : MonoBehaviour
     public void Clicked(BaseEventData data)
     {
         tInstance.ChooseTile(gameObject);
+    }
+
+    //first touch point of finger
+    //every frame check position of finger drag
+    //candy can only move on x and y axis while the other is 0
+    //if 1/4 distance to position passed then swap candies
+
+    public void OnPointerDown(PointerEventData pointerEventData)
+    {
+        if(tInstance.updating)
+            return;
+
+    }
+
+    public void OnPointerUp(PointerEventData pointerEventData)
+    {
+
     }
 
     public void ShowIsPressed()

@@ -457,6 +457,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2080046247}
   - component: {fileID: 2080046246}
+  - component: {fileID: 2080046248}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -476,6 +477,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b6427079c325d84e9da59d388538b81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  updating: 0
   sprites:
   - {fileID: 7086606104257924489, guid: 34f6321b206afab459fb7c8d37989456, type: 3}
   - {fileID: -8166966530815011495, guid: 34f6321b206afab459fb7c8d37989456, type: 3}
@@ -498,3 +500,15 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2080046248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2080046245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e707a419d70ea5e4d9825f3f867ecaba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
