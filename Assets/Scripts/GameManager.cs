@@ -207,7 +207,8 @@ public class GameManager : MonoBehaviour
 
     public void ChooseTile(GameObject tile)
     {
-        Node currentNode = tile.GetComponent<Tile>().node;
+        Tile tile1 = tile.GetComponent<Tile>();
+        Node currentNode = tile1.node;
         if (currentNode.value == -1)
             return;
 
@@ -223,10 +224,12 @@ public class GameManager : MonoBehaviour
             {
                 tilesToSwap.Add(tile);
                 SwapTiles();
+                return;
             }
             else
             {
                 Debug.Log("Tile Not next to previous choice");
+                return;
             }
         }
         else
@@ -234,13 +237,16 @@ public class GameManager : MonoBehaviour
             Debug.Log($"added tile: x{tile.GetComponent<Tile>().node.index.x} y{tile.GetComponent<Tile>().node.index.y}");
             tilesToSwap.Add(tile);
         }
+        tile1.ShowIsPressed();
     }
 
     public void SwapTiles()
     {
+        Tile tile1 = tilesToSwap[0].GetComponent<Tile>();
+        Tile tile2 = tilesToSwap[1].GetComponent<Tile>();
         Debug.Log("Swapping Tiles");
-        Node node1 = tilesToSwap[0].GetComponent<Tile>().node;
-        Node node2 = tilesToSwap[1].GetComponent<Tile>().node;
+        Node node1 = tile1.node;
+        Node node2 = tile2.node;
 
         Point tmpPoint;
         tmpPoint = node1.index;
@@ -248,8 +254,9 @@ public class GameManager : MonoBehaviour
         node2.index = tmpPoint;
         tilesToSwap[0].GetComponent<RectTransform>().anchoredPosition = new Vector2(node1.index.x * 64, node1.index.y * -64);
         tilesToSwap[1].GetComponent<RectTransform>().anchoredPosition = new Vector2(node2.index.x * 64, node2.index.y * -64);
+        tile1.BackToNotBlack();
+        tile2.BackToNotBlack();
         tilesToSwap.Clear();
-
     }
 
     [ContextMenu("Print TilesToSwap")]
