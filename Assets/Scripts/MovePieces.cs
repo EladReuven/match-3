@@ -29,6 +29,8 @@ public class MovePieces : MonoBehaviour
 
     public void MovePiece(Tile tile)
     {
-
+        if (moving != null)
+            return;
+        moving = tile;
     }
 }
